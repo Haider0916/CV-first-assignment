@@ -1,0 +1,120 @@
+\documentclass[11pt]{article}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage[margin=1in]{geometry}
+
+% report.tex sits in the project root; figures live in the question folders
+\graphicspath{{q1/}{q2/}{q3/}{q4/}{q5/}}
+
+\title{CSCI-B 657 Computer Vision -- Project 1 Report}
+\author{Syed Haider Imam Abidi \\ Student ID: \texttt{2001397547}}
+\date{Fall 2026}
+
+\begin{document}
+\maketitle
+
+%==================================================================
+\section*{Problem 1: Sampling}
+
+\subsection*{Setup}
+The input image was converted to grayscale and normalized so that every
+pixel intensity lies in $[0,1]$ (division by 255). All experiments in this
+report use this grayscale normalized image. The image used is a
+$228 \times 228$ crop of Lena; its side length is divisible by 4, so two
+halvings followed by two doublings return exactly to the original size.
+
+\subsection*{Implementation}
+\textbf{Downsampling.} My function keeps every other row and every other
+column (even indices only) and discards the rest, so output pixel $(i,j)$
+equals input pixel $(2i, 2j)$. This halves the image in both the $x$ and $y$
+directions. It was applied twice:
+$228 \times 228 \rightarrow 114 \times 114 \rightarrow 57 \times 57$.
+No built-in resize function was used.
+
+\textbf{Upsampling.} My function creates a zero-filled array twice the
+height and width of its input, then places each input pixel $(i,j)$ at
+position $(2i, 2j)$. The remaining positions stay zero, which inserts an
+empty pixel between every pair of neighboring pixels. It was applied twice
+to the $57 \times 57$ image:
+$57 \times 57 \rightarrow 114 \times 114 \rightarrow 228 \times 228$.
+
+\textbf{Display.} All images are shown at the same physical size with
+nearest-neighbor display, so each pixel of a low-resolution image appears as
+a larger square block. Intensities are displayed on a fixed $[0,1]$
+grayscale range so brightness can be compared fairly across images.
+
+\subsection*{Downsampling results}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{q1_downsample.png}
+  \caption{Original ($228\times228$), downsampled once ($114\times114$) and
+  downsampled twice ($57\times57$), displayed at the same size.}
+\end{figure}
+
+\textbf{Observation.} As the resolution drops, the images become visibly
+blocky: each remaining pixel is drawn as a larger square. Smooth regions such
+as the face, shoulder and background wall still look reasonable, because
+neighboring pixels there were nearly identical anyway. Fine detail degrades
+badly: the diagonal edge of the hat brim turns into a jagged staircase, and
+the feathers and the woven texture of the hat lose their structure and turn
+into irregular, noisy patterns. At $57 \times 57$, facial features such as the
+eyes and mouth are reduced to a few blocks.
+
+\textbf{Why.} Sampling every other pixel keeps only $1/4$ of the samples per
+step ($1/16$ after two steps) and assumes each kept pixel represents its
+neighborhood. Where the image contains detail finer than the new sampling
+spacing, this assumption fails and the sampled values misrepresent the
+detail as coarser false patterns. This is \emph{aliasing}: by the Nyquist
+theorem, a signal must be sampled at least twice per cycle of its highest
+frequency, and halving the sampling rate violates this for the finest
+textures. Proper downsampling would first apply a low-pass (smoothing)
+filter to remove those frequencies.
+
+\subsection*{Upsampling results}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{q1_upsample.png}
+  \caption{Original ($228\times228$), upsampled once ($114\times114$) and
+  upsampled twice ($228\times228$), starting from the $57\times57$ image.}
+\end{figure}
+
+\textbf{Observation.} The upsampled images are covered by a regular grid of
+black pixels and are much darker than the original. After one upsampling,
+Lena is still recognizable through a fine black mesh. After two, the image
+back at the original $228 \times 228$ size consists of sparse isolated bright
+dots on a black background and is barely recognizable; it can only be made
+out from a distance, where the eye averages the dots together.
+
+\textbf{Why.} Every inserted pixel has value 0. After one upsampling, 3 out
+of every 4 pixels are zero, so average brightness drops to roughly $1/4$;
+after two, 15 out of every 16 pixels are zero, and brightness drops to
+roughly $1/16$. Upsampling restores the image \emph{dimensions} but not the
+\emph{information}: the pixels discarded by downsampling are not recovered,
+only replaced by empty values. Filling these gaps sensibly requires
+interpolation or filtering, which is explored in Problem 3.
+
+\subsection*{Known limitations}
+\begin{itemize}
+  \item If an image side is not divisible by 4, two halvings followed by two
+        doublings do not return exactly to the original size (for example,
+        $231 \rightarrow 116 \rightarrow 58 \rightarrow 116 \rightarrow 232$).
+        The $228 \times 228$ input avoids this.
+  \item No anti-aliasing filter is applied before downsampling, by design of
+        the assignment, so aliasing is expected.
+\end{itemize}
+
+%==================================================================
+\section*{Problem 2: Gaussian Smoothing}
+% To be completed.
+
+\section*{Problem 3: Image Filtering}
+% To be completed.
+
+\section*{Problem 4: Noise}
+% To be completed.
+
+\section*{Problem 5: Sobel Filters}
+% To be completed.
+
+\end{document}
