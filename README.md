@@ -18,7 +18,7 @@ q1/   question1.py, sample_img.png
 q2/   question2.py, sample_img.png
 q3/   question3.py, sample_img.png
 q4/   question4.py, sample_img.png
-q5/   (to be added)
+q5/   question5.py, sample_img.png
 report.pdf
 ```
 
@@ -81,6 +81,17 @@ python question4.py
   to the original image, and applies the same two filters.
 - Opens one figure (2×3) and saves it as `q4_noise.png` in the current folder.
 
-## Problem 5
+## Problem 5: Sobel Filters
 
-To be added.
+```
+cd q5
+python question5.py
+```
+
+- Loads `sample_img.png` from the same folder.
+- Main function: `mag, ori = mySobelFilter(I)` returns edge magnitude and
+  orientation for every pixel, both normalized to [0, 1].
+- Also shows the x and y gradients (min-max normalized to [0, 1]) and an HSV
+  color image (hue = orientation, saturation = value = magnitude).
+  matplotlib's `hsv_to_rgb` is used only to display the HSV image.
+- Opens one figure (2×3) and saves it as `q5_sobel.png` in the current folder.

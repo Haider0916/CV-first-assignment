@@ -217,8 +217,8 @@ next upsampling:
 This was done twice, once with each filter, both starting from the same
 upsampled data.
 
-\textbf{Gaussian filter.} The \texttt{myGaussianSmoothing} function from
-Problem 2 with $k = 11$ and $\sigma = 1$, as specified.
+\textbf{Gaussian filter.} My Gaussian smoothing function from
+Problem 2 (named \texttt{gaussianSmoothing} in this script) with $k = 11$ and $\sigma = 1$, as specified.
 
 \textbf{Median filter.} I implemented my own median filter using the same
 structure as the Gaussian filter: the image is padded by replicating edge
@@ -392,6 +392,88 @@ minority, so the median discards exactly the noise.
 
 
 \section*{Problem 5: Sobel Filters}
-% To be completed.
+
+\subsection*{Implementation}
+I implemented \texttt{mySobelFilter(I)}, which returns the edge magnitude and
+orientation for every pixel. It uses the two $3 \times 3$ Sobel kernels
+\[
+G_x = \begin{bmatrix} -1 & 0 & 1\\ -2 & 0 & 2\\ -1 & 0 & 1 \end{bmatrix},
+\qquad
+G_y = \begin{bmatrix} -1 & -2 & -1\\ 0 & 0 & 0\\ 1 & 2 & 1 \end{bmatrix}.
+\]
+$G_x$ subtracts the left column of a pixel's neighborhood from the right column,
+measuring how brightness changes from left to right; $G_y$ does the same from
+top to bottom. The larger weight in the middle row/column gives the pixels
+closest to the center more influence, which adds a little smoothing. Each kernel
+is applied with the same sliding-window function used for Gaussian smoothing
+(edge-replicate padding, element-wise multiply and sum), giving the gradients
+$g_x$ and $g_y$. Then
+\[
+\text{mag} = \sqrt{g_x^2 + g_y^2}, \qquad \text{ori} = \operatorname{arctan2}(g_y, g_x).
+\]
+The magnitude is the edge strength; the orientation is the direction in which
+brightness increases most, in $[-\pi, \pi]$. \texttt{arctan2} was used instead of
+$\arctan(g_y/g_x)$ so the full range of directions is kept and division by zero
+is avoided.
+
+\textbf{Normalization to $[0,1]$.} The magnitude is divided by its maximum. The
+orientation is mapped with $(\text{ori} + \pi)/(2\pi)$. For display, $g_x$ and
+$g_y$, which can be negative, are min--max normalized, so mid-gray means no
+change, darker means brightness decreases and brighter means it increases.
+
+\textbf{Color visualization.} An HSV image was built with hue $=$ orientation,
+saturation $=$ magnitude and value $=$ magnitude, and converted to RGB for
+display using matplotlib's \texttt{hsv\_to\_rgb} (used only for this color
+conversion; the Sobel filter itself uses no built-in functions).
+
+\subsection*{Results}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{q5_sobel.png}
+  \caption{Original, normalized $x$ and $y$ gradients, normalized magnitude,
+  normalized orientation, and the HSV visualization.}
+\end{figure}
+
+\textbf{Gradients.} Both gradient images look like an embossed version of Lena.
+The $x$ gradient responds mainly to vertical edges (the sides of the hat, the
+hair strands, the edge of the shoulder), while the $y$ gradient responds mainly
+to horizontal edges (the top of the hat brim, the eyes, the lips). Flat regions
+are mid-gray in both, meaning no change.
+
+\textbf{Magnitude.} The magnitude image is black in smooth regions such as the
+background, cheek and shoulder, and bright along object boundaries. The
+strongest responses are on high-contrast boundaries like the hat brim and the
+outline of the shoulder, while the feathers and hair produce many weaker,
+densely packed edges. This matches the idea that an edge is a place of rapid
+intensity change.
+
+\textbf{Orientation.} On its own, the orientation image is hard to read. Along
+real edges it is consistent, but in flat regions it looks like random noise,
+because there $g_x$ and $g_y$ are both close to zero and their angle is
+determined by tiny intensity fluctuations. There are also sharp jumps from black
+to white, which are not real edges: angles just below $+\pi$ and just above
+$-\pi$ point in almost the same direction but map to opposite ends of $[0,1]$.
+
+\textbf{HSV visualization.} Using magnitude for saturation and value solves this.
+Flat regions become black, hiding their meaningless orientations, and only real
+edges are visible, colored by their direction. Edges with the same orientation
+share a color along their length, such as the long boundary of the hat brim, and
+the color changes gradually as an edge curves. The two sides of a thin
+structure often appear in different colors, since the brightness increases in
+opposite directions on each side. The hue wraps around the color wheel, so the
+angle jump that looked like a black-to-white break in the grayscale orientation
+image appears as a smooth red-to-red transition here. The result resembles the
+color-coded Sobel example from the lecture.
+
+\subsection*{Known limitations}
+\begin{itemize}
+  \item No smoothing is applied before the Sobel filter, so weak texture and
+        noise also produce small responses; smoothing first (as discussed in
+        lecture) would reduce these at the cost of some edge sharpness.
+  \item Orientation is unreliable where the magnitude is near zero.
+  \item Magnitude is normalized by the maximum of this image, so values are
+        relative to the strongest edge rather than absolute.
+\end{itemize}
+
 
 \end{document}
