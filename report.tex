@@ -204,7 +204,106 @@ $s$ can add at this $k$.
 
 
 \section*{Problem 3: Image Filtering}
-% To be completed.
+
+\subsection*{Implementation}
+Starting from the $57 \times 57$ image obtained in Problem 1 (downsampling
+twice), I repeated the upsampling from Problem 1 but applied a filter after
+\emph{every} upsampling step, so each filtered result is the input to the
+next upsampling:
+\[
+57 \xrightarrow{\text{up}} 114 \xrightarrow{\text{filter}} 114
+   \xrightarrow{\text{up}} 228 \xrightarrow{\text{filter}} 228 .
+\]
+This was done twice, once with each filter, both starting from the same
+upsampled data.
+
+\textbf{Gaussian filter.} The \texttt{myGaussianSmoothing} function from
+Problem 2 with $k = 11$ and $\sigma = 1$, as specified.
+
+\textbf{Median filter.} I implemented my own median filter using the same
+structure as the Gaussian filter: the image is padded by replicating edge
+pixels, and for every pixel the $k \times k$ window around it is taken. Instead
+of a weighted sum, the window values are flattened into a list, sorted, and the
+middle element (index $\lfloor k^2/2 \rfloor$) becomes the output pixel. The
+median filter has no weights and therefore no $\sigma$. Since the question does
+not specify a size, I used the standard $3 \times 3$ window ($k = 3$). As a
+check, the filter turns
+$\begin{bmatrix} 5 & 5 & 5\\ 5 & 999 & 5\\ 5 & 5 & 5 \end{bmatrix}$
+into a matrix of all 5s, removing the outlier.
+
+\subsection*{Results: Gaussian filtering}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{q3_upsample_gaussian.png}
+  \caption{Upsampling with Gaussian smoothing ($k = 11$, $\sigma = 1$) after
+  each upsampling step.}
+\end{figure}
+
+\textbf{Did it get better?} Partly. Compared with Problem 1, the regular grid
+of black pixels is gone and the image is smooth and recognizable again. A very
+faint leftover dot texture is still visible after the first step. However, the
+results are blurry, and they are much darker than the original: roughly
+$1/4$ of the original brightness after the first step and $1/16$ after the
+second, so the final image is close to black.
+
+\textbf{Why.} The Gaussian spreads every real pixel into the empty positions
+around it, which fills the gaps. But its weights sum to 1, so each output is an
+average that includes the inserted zeros. After one upsampling, 3 of every 4
+pixels are zero, so the average brightness drops to about $1/4$; the second
+step repeats this, giving about $1/16$. The structure is preserved, only scaled
+down: multiplying the final result by 16 restores the original brightness and
+shows a smooth, blurred version of the image. The blur itself is unavoidable,
+since the detail removed by downsampling cannot be recovered. The faint
+leftover texture appears because $\sigma = 1$ is only just wide enough to fill
+gaps 2 pixels apart evenly.
+
+\subsection*{Results: median filtering}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{q3_upsample_median.png}
+  \caption{Upsampling with $3 \times 3$ median filtering after each
+  upsampling step.}
+\end{figure}
+
+\textbf{Did it improve the result?} No. Both results are completely black;
+the largest value in either image is exactly 0. The median filter removed the
+image entirely.
+
+\textbf{Why.} After upsampling, real pixels sit only at even positions. Any
+$3 \times 3$ window therefore contains 1, 2 or 4 real pixels, and at least 5
+zeros:
+\[
+\begin{bmatrix} 0&0&0\\ 0&R&0\\ 0&0&0 \end{bmatrix}
+\qquad
+\begin{bmatrix} 0&0&0\\ R&0&R\\ 0&0&0 \end{bmatrix}
+\qquad
+\begin{bmatrix} R&0&R\\ 0&0&0\\ R&0&R \end{bmatrix}
+\]
+After sorting the 9 values, the middle (5th) value is always 0. The median's
+strength is ignoring a minority of extreme values as outliers, but here the
+real image pixels \emph{are} the minority, so the filter treats the image
+itself as noise and discards it. The second step starts from an all-black
+image and stays black. A larger window does not help, because real pixels
+remain at most about a quarter of any window.
+
+\subsection*{Which filtering is better?}
+Gaussian filtering is clearly better here. It fills the gaps with a weighted
+blend of the nearby real pixels, so the image survives, although blurred and
+darkened. Median filtering fails completely. This does not mean the median
+filter is a bad filter; it works well when the corrupted values are rare
+(for example, salt-and-pepper noise), but in upsampled data the inserted zeros
+are the majority.
+
+\subsection*{Known limitations}
+\begin{itemize}
+  \item The Gaussian results are darkened by averaging with the inserted
+        zeros; no brightness correction is applied in the main results.
+  \item A thin darker line appears along the right and bottom edges of the
+        Gaussian results: the last row and column of each upsampled image are
+        zeros, and edge-replicate padding copies them outward.
+  \item Neither filter recovers the fine detail lost during downsampling.
+\end{itemize}
+
 
 \section*{Problem 4: Noise}
 % To be completed.

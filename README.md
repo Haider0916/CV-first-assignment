@@ -16,7 +16,7 @@ pip install numpy pillow matplotlib
 ```
 q1/   question1.py, sample_img.png
 q2/   question2.py, sample_img.png
-q3/   (to be added)
+q3/   question3.py, sample_img.png
 q4/   (to be added)
 q5/   (to be added)
 report.pdf
@@ -54,6 +54,21 @@ python question2.py
 - Two figure windows open one after the other (close the first to see the second).
 - Saves `q2_vary_k.png` and `q2_vary_sigma.png` in the current folder.
 
-## Problems 3–5
+## Problem 3: Image Filtering
+
+```
+cd q3
+python question3.py
+```
+
+- Loads `sample_img.png` from the same folder, downsamples it twice (as in
+  Problem 1), then upsamples it twice with a filter after every upsampling step.
+- Gaussian version: `gaussianSmoothing` with k = 11, sigma = 1.
+- Median version: my own `medianSmoothing` with a 3×3 window (k = 3).
+- Two figure windows open one after the other (close the first to see the second).
+- Saves `q3_upsample_gaussian.png` and `q3_upsample_median.png` in the current folder.
+- Runs in a couple of seconds.
+
+## Problems 4–5
 
 To be added.
