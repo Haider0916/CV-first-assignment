@@ -30,8 +30,6 @@ python question1.py
 ```
 
 - Loads `sample_img.png` (228×228 Lena) from the same folder.
-- To test another image, replace `sample_img.png` or change the filename
-  in the `image_path` line near the top of `question1.py`.
 - Two figure windows open one after the other (close the first to see the second).
 - Saves `q1_downsample.png` and `q1_upsample.png` in the current folder.
 
@@ -42,8 +40,7 @@ cd q2
 python question2.py
 ```
 
-- Loads `sample_img.png` from the same folder (replace it or edit the
-  `image_path` line to test another image).
+- Loads `sample_img.png` from the same folder.
 - Main function: `myGaussianSmoothing(I, k, s)`, where `I` is a grayscale
   image in [0, 1], `k` is the kernel size (odd) and `s` is sigma.
 - Runs 10 experiments on the original image:
