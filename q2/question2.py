@@ -52,7 +52,7 @@ def padImage(normalizedImgArr, p):
     return padded
 
 
-def myGaussianSmoothing(I, k, s):
+def gaussianSmoothing(I, k, s):
     kernel = gaussianKernel(k, s)
     p = k // 2
     padded = padImage(I, p)
@@ -92,7 +92,7 @@ images1 = [I]
 titles1 = ["Original"]
 for k in [3, 5, 7, 11, 51]:
     print("doing k =", k)
-    result = myGaussianSmoothing(I, k, 1)
+    result = gaussianSmoothing(I, k, 1)
     images1.append(result)
     titles1.append("k = " + str(k) + ", s = 1")
 showImages(images1, titles1, "q2_vary_k.png")
@@ -102,7 +102,7 @@ images2 = [I]
 titles2 = ["Original"]
 for s in [0.1, 1, 2, 3, 5]:
     print("doing s =", s)
-    result = myGaussianSmoothing(I, 11, s)
+    result = gaussianSmoothing(I, 11, s)
     images2.append(result)
     titles2.append(f"k = 11, s = {s}")
 showImages(images2, titles2, "q2_vary_sigma.png")

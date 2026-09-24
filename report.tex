@@ -106,7 +106,102 @@ interpolation or filtering, which is explored in Problem 3.
 
 %==================================================================
 \section*{Problem 2: Gaussian Smoothing}
-% To be completed.
+
+\subsection*{Implementation}
+I implemented \texttt{myGaussianSmoothing(I, k, s)} in three steps.
+
+\textbf{1. Kernel.} A $k \times k$ grid of weights is built, where the cell at
+horizontal and vertical offset $(x, y)$ from the center gets the raw weight
+\[
+  G(x, y) = e^{-\frac{x^2 + y^2}{2s^2}}, \qquad x, y \in \{-\lfloor k/2 \rfloor, \dots, \lfloor k/2 \rfloor\}.
+\]
+All weights are then divided by their sum so the kernel adds up to 1. This
+keeps the overall brightness of the image unchanged. (The usual
+$\frac{1}{2\pi s^2}$ factor is not needed, since it cancels in this
+normalization.) As a check, the $k=3$, $s=1$ kernel is
+\[
+\begin{bmatrix}
+0.075 & 0.124 & 0.075\\
+0.124 & 0.204 & 0.124\\
+0.075 & 0.124 & 0.075
+\end{bmatrix}.
+\]
+
+\textbf{2. Padding.} Pixels near the border do not have a full $k \times k$
+neighborhood, so the image is padded by $p = \lfloor k/2 \rfloor$ pixels on
+every side. Each padded pixel copies the nearest edge pixel (replicate
+padding). I chose this over zero padding because zeros would be averaged into
+the border and create a dark frame, especially for large $k$.
+
+\textbf{3. Sliding window.} For every pixel of the original image, the
+$k \times k$ window around it is taken from the padded image, multiplied
+element-wise with the kernel, and summed. That weighted average becomes the
+output pixel. The output has the same size as the input, and results are
+written to a separate array so every pixel is computed from the original
+values. No built-in filtering functions were used; NumPy was used only for
+array storage, element-wise multiplication and summing.
+
+Every run starts from the original grayscale image; results are never
+smoothed twice.
+
+\subsection*{Experiment 1: varying kernel size ($s = 1$)}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{q2_vary_k.png}
+  \caption{Gaussian smoothing with $s = 1$ and $k = 3, 5, 7, 11, 51$.}
+\end{figure}
+
+\textbf{Observation.} Going from $k = 3$ to $k = 5$ the image gets
+noticeably softer: fine detail such as the feathers, the hat texture and the
+eyelashes blurs, and edges like the hat brim become less crisp. From $k = 7$
+onward, however, the results look practically identical; $k = 7$, $k = 11$
+and $k = 51$ cannot be told apart by eye. The only real difference is run
+time, since each output pixel needs $k^2$ multiplications, so $k = 51$ does
+about 21 times more work than $k = 11$ for no visible change.
+
+\textbf{Why.} The amount of blur is decided by $s$, not by $k$. With $s = 1$,
+the Gaussian weights become negligible beyond about $3s = 3$ pixels from the
+center (for example $e^{-4.5} \approx 0.01$ relative to the center at a
+distance of 3). A $7 \times 7$ kernel already contains almost all of the
+weight, so larger kernels only add near-zero weights at their edges. For
+$k = 3$ and $k = 5$ the kernel is too small and cuts off part of the bell
+curve, which is why those results are slightly less blurred. In short, $k$
+only needs to be large enough to hold the Gaussian (roughly $k \geq 6s + 1$).
+
+\subsection*{Experiment 2: varying $s$ ($k = 11$)}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{q2_vary_sigma.png}
+  \caption{Gaussian smoothing with $k = 11$ and $s = 0.1, 1, 2, 3, 5$.}
+\end{figure}
+
+\textbf{Observation.} With $s = 0.1$ the output looks exactly like the
+original. As $s$ increases to 1, 2 and 3, the blur increases steadily: first
+fine textures disappear, then facial features and edges soften, and at
+$s = 3$ the face and hat are only recognizable by their overall shapes. At
+$s = 5$ the image is the most blurred, although the step from $s = 3$ to
+$s = 5$ looks smaller than the earlier steps.
+
+\textbf{Why.} $s$ controls how quickly the weights fall off with distance.
+At $s = 0.1$ the center weight is essentially 1 and every other weight is
+essentially 0, so each pixel is only "averaged" with itself and nothing
+changes. Larger $s$ spreads the weight over more distant neighbors, so each
+pixel is mixed with a wider area and more high-frequency detail is removed.
+At $s = 5$, however, the Gaussian is wider than the $11 \times 11$ window
+(which only reaches $\pm 5 = \pm 1s$), so the curve is cut off and the
+weights inside the window are nearly flat. The filter then behaves more like
+a plain box average of the window, which limits how much extra blur a larger
+$s$ can add at this $k$.
+
+\subsection*{Known limitations}
+\begin{itemize}
+  \item Large kernels are slow: cost grows with $k^2$ per pixel.
+  \item When $k$ is small relative to $s$ (e.g.\ $k = 11$, $s = 5$) the
+        Gaussian is truncated and the result is not a true Gaussian blur.
+  \item Replicate padding repeats edge pixels, so a few pixels along the
+        border are slightly biased toward the edge values.
+\end{itemize}
+
 
 \section*{Problem 3: Image Filtering}
 % To be completed.
