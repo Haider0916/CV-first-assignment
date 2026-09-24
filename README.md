@@ -17,7 +17,7 @@ pip install numpy pillow matplotlib
 q1/   question1.py, sample_img.png
 q2/   question2.py, sample_img.png
 q3/   question3.py, sample_img.png
-q4/   (to be added)
+q4/   question4.py, sample_img.png
 q5/   (to be added)
 report.pdf
 ```
@@ -66,6 +66,21 @@ python question3.py
 - Saves `q3_upsample_gaussian.png` and `q3_upsample_median.png` in the current folder.
 - Runs in a couple of seconds.
 
-## Problems 4–5
+## Problem 4: Noise
+
+```
+cd q4
+python question4.py
+```
+
+- Loads `sample_img.png` from the same folder.
+- Adds Gaussian noise N(0, 0.1) (0.1 = standard deviation, seed fixed at 0 so
+  results are reproducible), then filters it with Gaussian smoothing
+  (k = 7, sigma = 1) and a 3×3 median filter.
+- Builds salt noise from the same noise (1 where noise > 0.2, else 0), adds it
+  to the original image, and applies the same two filters.
+- Opens one figure (2×3) and saves it as `q4_noise.png` in the current folder.
+
+## Problem 5
 
 To be added.

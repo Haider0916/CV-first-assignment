@@ -306,7 +306,90 @@ are the majority.
 
 
 \section*{Problem 4: Noise}
-% To be completed.
+
+\subsection*{Implementation}
+\textbf{Gaussian noise.} Using the original grayscale image $I$, I generated
+one random value per pixel, $r \sim N(0, 0.1)$, and formed
+$I_{\text{noisy}}(x, y) = I(x, y) + r$. I interpreted $0.1$ as the standard
+deviation. The result was clipped to $[0, 1]$ so it remains a valid image. The
+random generator was seeded so the noise, and therefore every figure, is
+reproducible.
+
+\textbf{Filtering.} The noisy image was filtered with my Gaussian smoothing
+from Problem 2 using $k = 7$ and $\sigma = 1$ (a $7 \times 7$ window holds
+almost all of a $\sigma = 1$ Gaussian, as found in Problem 2), and with my
+$3 \times 3$ median filter from Problem 3. Each filter was applied directly to
+the noisy image.
+
+\textbf{Salt noise.} Using the \emph{same} noise values $r$, I set the noise to
+1 where $r > 0.2$ and 0 otherwise, and added this to the original image,
+again clipping to $[0, 1]$. With a standard deviation of 0.1, $r > 0.2$ happens
+for about 2.3\% of pixels, so roughly 2\% of the pixels become pure white and
+the rest are unchanged. Because only large \emph{positive} values pass the
+threshold, this produces white dots only (salt), with no black dots (pepper).
+The same two filters with the same settings were then applied.
+
+\subsection*{Results}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{q4_noise.png}
+  \caption{Top row: Gaussian noise, then Gaussian smoothing ($k = 7$,
+  $\sigma = 1$) and $3 \times 3$ median filtering. Bottom row: salt noise, then
+  the same two filters.}
+\end{figure}
+
+\textbf{Gaussian noise: how does it look?} The image is grainy everywhere, like
+static. Every pixel is slightly brighter or darker than it should be, but the
+content is still clearly recognizable.
+
+\textbf{Gaussian smoothing: did it improve?} Yes, clearly. The grain is mostly
+gone. Because the noise values are random and centered on zero, averaging a
+pixel with its neighbors makes the positive and negative errors cancel out. The
+cost is some blur: edges and fine texture become softer.
+
+\textbf{Median filtering on Gaussian noise.} It also improves the image and
+keeps edges somewhat sharper, but a blotchy texture remains and the result is
+less clean than the Gaussian. With Gaussian noise every pixel is a little wrong,
+so there is no ``clean majority'' in the window for the median to pick; it just
+selects one of the noisy values. Averaging uses all the values and cancels
+noise more effectively.
+
+\textbf{Salt noise: Gaussian smoothing.} The white dots are not removed. Each
+dot is averaged with its neighbors, so it is spread into a fainter gray smudge,
+and the whole image is blurred as well. The corruption is diluted, not
+eliminated.
+
+\textbf{Salt noise: median filtering.} This gives the best result in the whole
+figure: the white dots disappear almost completely and the image stays sharp.
+A white dot is typically only 1 of the 9 values in a $3 \times 3$ window, so
+after sorting it sits at the end of the list and the middle value is an
+ordinary, uncorrupted pixel. Since most pixels are untouched, edges are also
+preserved.
+
+\subsection*{Discussion}
+The two filters suit different kinds of noise. Gaussian smoothing works best
+when \emph{every} pixel is slightly corrupted, because averaging cancels small
+random errors. Median filtering works best when \emph{a few} pixels are
+completely corrupted, because the median ignores a minority of extreme values
+(outliers) instead of averaging them in.
+
+This also explains the median filter's failure in Problem 3. There, the
+inserted zeros were the \emph{majority} of each window and the real pixels were
+the minority, so the median discarded the image. Here the salt dots are the
+minority, so the median discards exactly the noise.
+
+\subsection*{Known limitations}
+\begin{itemize}
+  \item $N(0, 0.1)$ was interpreted as standard deviation 0.1. If it meant
+        variance 0.1 (standard deviation about 0.32), the noise would be much
+        stronger and about 26\% of pixels would become salt, which would make
+        the median filter less effective.
+  \item Clipping to $[0, 1]$ slightly changes the noise near black and white
+        regions.
+  \item A single, fixed random seed was used; other seeds give visually
+        identical conclusions but different individual noise pixels.
+\end{itemize}
+
 
 \section*{Problem 5: Sobel Filters}
 % To be completed.
